@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>On Gaslighting</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --text: #e8e8e0;
+      --text-dim: #999990;
+      --divider: #222222;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'EB Garamond', serif;
+      font-weight: 400;
+      line-height: 1.95;
+      overflow-x: hidden;
+    }
+
+    #smoke-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* COVER */
+    .cover {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      z-index: 1;
+    }
+
+    .cover-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.45em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 3rem;
+    }
+
+    .cover-title {
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      margin-bottom: 1.2rem;
+    }
+
+    .cover-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      margin-bottom: 3.5rem;
+      text-transform: uppercase;
+    }
+
+    .cover-tagline {
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      font-style: italic;
+      color: var(--text-dim);
+      max-width: 500px;
+      line-height: 2.1;
+    }
+
+    .cover-author {
+      margin-top: 4rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.28em;
+      color: var(--text-dim);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.35em;
+      animation: fadeUpDown 2.5s ease-in-out infinite;
+    }
+
+    .scroll-hint::after {
+      content: '';
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--text-dim), transparent);
+    }
+
+    @keyframes fadeUpDown {
+      0%, 100% { opacity: 0.3; transform: translateX(-50%) translateY(0); }
+      50%       { opacity: 0.8; transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* BODY */
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 6rem 2rem 8rem;
+    }
+
+    .chapter {
+      margin-bottom: 6rem;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    .chapter.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chapter-num {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.45em;
+      color: var(--text-dim);
+      margin-bottom: 2.5rem;
+      display: block;
+      text-transform: uppercase;
+    }
+
+    .chapter p {
+      font-size: clamp(1rem, 2vw, 1.1rem);
+      margin-bottom: 1.6rem;
+      color: var(--text);
+    }
+
+    .chapter p:last-child { margin-bottom: 0; }
+
+    .chapter .emphasis {
+      font-style: italic;
+      color: #c8c8c0;
+      display: block;
+      margin: 2rem 0;
+      padding-left: 1.5rem;
+      border-left: 1px solid #333;
+      line-height: 2.2;
+      font-size: clamp(1rem, 2vw, 1.12rem);
+    }
+
+    .divider {
+      position: relative;
+      z-index: 1;
+      width: 40px;
+      height: 1px;
+      background: var(--divider);
+      margin: 0 auto 6rem;
+    }
+
+    /* ENDING */
+    .ending {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 4rem 2rem 8rem;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    .ending.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .ending-text {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      line-height: 2.5;
+      color: var(--text-dim);
+      font-style: italic;
+      max-width: 500px;
+      margin: 0 auto 3rem;
+    }
+
+    .ending-sign {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: #555;
+    }
+
+    @media (max-width: 480px) {
+      .content { padding: 4rem 1.5rem 6rem; }
+      .cover   { padding: 3rem 1.5rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .chapter, .ending { opacity: 1; transform: none; transition: none; }
+      .scroll-hint { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="smoke-canvas"></canvas>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="cover-label">Essay</span>
+  <h1 class="cover-title">On Gaslighting</h1>
+  <p class="cover-subtitle">A personal reflection</p>
+  <p class="cover-tagline">
+    Gaslighting is not about making someone believe something.<br>
+    It is about making them stop believing in themselves.
+  </p>
+  <span class="cover-author">by · Sugyeong</span>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<!-- BODY -->
+<div class="content">
+
+  <article class="chapter">
+    <span class="chapter-num">I</span>
+    <p>I have encountered narcissists and gaslighting more times than I can count.</p>
+    <p>They set the trap with sweetness. Once you're caught, it is difficult to escape — not because the bait is irresistible, but because the trap itself is engineered to hold you.</p>
+    <p>Acquaintances, shared history, social circles, the invisible web of professional life. The moment a target tries to pull away, the gaslighter is quick to reel them back in — wearing the mask of persuasion, wearing the face of concern.</p>
+    <p>There is a saying that even a daughter-in-law who has left home will return for the right dish. When I heard it, my first thought was how much it resembles gaslighting. It is something else entirely from the carrot-and-stick dynamic. What looks like a carrot is, itself, the trap.</p>
+  </article>
+
+  <div class="divider"></div>
+
+  <article class="chapter">
+    <span class="chapter-num">II</span>
+    <p>A narcissist and a gaslighter always need attendants.</p>
+    <p>They rebuild kingdoms with themselves at the center. This is not leadership. A leader grows people. A gaslighter erodes them — quietly, gradually dissolving the attendant's independence until almost nothing remains.</p>
+    <em class="emphasis">"Without me, you are nothing."</em>
+    <p>The problem is that it rarely sounds like a threat. In the beginning it sounds like worry. Sometimes it even sounds like love. That is what makes gaslighting so dangerous.</p>
+  </article>
+
+  <div class="divider"></div>
+
+  <article class="chapter">
+    <span class="chapter-num">III</span>
+    <p>Every person is, at their core, an independent being. We are capable of standing alone — and yet we lean on one another. The problem is simply that some people choose to exploit that leaning.</p>
+    <p>After years of experiencing gaslighting in many different forms, I arrived at one conclusion: I am someone who can rise on my own.</p>
+    <p>Those who have been gaslighted for a long time often find, as time passes, that their memories begin to soften and romanticize. This, too, becomes material for exploitation. People who tend to become targets are usually high in empathy, generous toward others by nature. That is precisely why practicing the art of drawing one's own boundaries matters so much. I am still learning how.</p>
+  </article>
+
+</div>
+
+<div class="divider"></div>
+
+<!-- ENDING -->
+<section class="ending">
+  <p class="ending-text">
+    When a rose thorn finally works its way free from your skin,<br>
+    it hurts. And it leaves a hollow.<br><br>
+    But you have to wait<br>
+    until new flesh grows back.<br><br>
+    That time belongs to healing —<br>
+    and nothing else.
+  </p>
+  <span class="ending-sign">fin &nbsp;·&nbsp; Sugyeong</span>
+</section>
+
+<script>
+  const canvas = document.getElementById('smoke-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], mouse = { x: -999, y: -999 };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  class FogParticle {
+    constructor(init = false) { this.reset(init); }
+
+    reset(init = false) {
+      this.fromLeft = Math.random() < 0.5;
+      this.x = this.fromLeft ? -120 - Math.random() * 80 : W + 120 + Math.random() * 80;
+      const fogBand = H * 0.28;
+      this.y = H - Math.random() * fogBand;
+      this.vx = this.fromLeft ? (Math.random() * 1.1 + 0.5) : -(Math.random() * 1.1 + 0.5);
+      this.vy = (Math.random() - 0.5) * 0.2;
+      this.waveOffset = Math.random() * Math.PI * 2;
+      this.waveSpeed  = Math.random() * 0.018 + 0.008;
+      this.waveAmp    = Math.random() * 0.22 + 0.1;
+      this.size = Math.random() * 160 + 90;
+      this.maxSize = this.size + Math.random() * 80;
+      this.alpha = 0;
+      this.targetAlpha = Math.random() * 0.38 + 0.12;
+      this.decay = Math.random() * 0.0006 + 0.0003;
+      this.fadeIn = true;
+      this.gray = Math.floor(Math.random() * 55 + 130);
+      this.scaleX = Math.random() * 0.5 + 1.8;
+      this.scaleY = Math.random() * 0.3 + 0.55;
+      this.angle = (Math.random() - 0.5) * 0.3;
+      this.angleV = (Math.random() - 0.5) * 0.0008;
+      if (init) {
+        this.x = Math.random() * W;
+        this.alpha = Math.random() * this.targetAlpha;
+        this.fadeIn = false;
+        this.size = Math.random() * 160 + 80;
+      }
+    }
+
+    update() {
+      if (this.fadeIn) {
+        this.alpha = Math.min(this.alpha + 0.002, this.targetAlpha);
+        if (this.alpha >= this.targetAlpha) this.fadeIn = false;
+      } else {
+        this.alpha -= this.decay;
+      }
+      this.vx += this.fromLeft ? 0.012 : -0.012;
+      this.vx *= 0.995;
+      this.x += this.vx;
+      this.waveOffset += this.waveSpeed;
+      this.y += Math.sin(this.waveOffset) * this.waveAmp;
+      this.y += this.vy;
+      this.vy += (Math.random() - 0.5) * 0.015;
+      this.vy *= 0.97;
+      this.angleV += (Math.random() - 0.5) * 0.0003;
+      this.angle += this.angleV;
+      if (this.size < this.maxSize) this.size += 0.4;
+      const dx = this.x - mouse.x, dy = this.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 150) { this.vx += (dx / dist) * 0.06; this.vy += (dy / dist) * 0.04; }
+    }
+
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.scale(this.scaleX, this.scaleY);
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size);
+      grad.addColorStop(0,    `rgba(${this.gray},${this.gray},${this.gray},${this.alpha})`);
+      grad.addColorStop(0.45, `rgba(${this.gray},${this.gray},${this.gray},${this.alpha * 0.55})`);
+      grad.addColorStop(0.75, `rgba(${this.gray},${this.gray},${this.gray},${this.alpha * 0.2})`);
+      grad.addColorStop(1,    `rgba(${this.gray},${this.gray},${this.gray},0)`);
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    isDead() { return !this.fadeIn && this.alpha <= 0; }
+  }
+
+  for (let i = 0; i < 55; i++) particles.push(new FogParticle(true));
+
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      if (particles[i].isDead()) particles[i].reset(false);
+    }
+    while (particles.length < 55) particles.push(new FogParticle(false));
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.chapter, .ending').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
